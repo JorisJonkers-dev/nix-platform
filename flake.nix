@@ -1,202 +1,78 @@
 {
-  description = "Personal Stack NixOS and k3s platform";
+  description = "Reusable NixOS modules and helpers for JorisJonkers-dev platform hosts";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    deploy-rs.url = "github:serokell/deploy-rs";
-    disko.url = "github:nix-community/disko";
-    nixos-anywhere.url = "github:nix-community/nixos-anywhere";
   };
 
   outputs =
-    inputs@{ self, nixpkgs, deploy-rs, disko, nixos-anywhere, ... }:
+    { self, nixpkgs }:
     let
       lib = nixpkgs.lib;
-      supportedNixosAnywhereSystems = [
+      systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
       ];
-      mkHost =
-        {
-          system,
-          hostModule,
-          extraModules ? [ ],
-          extraSpecialArgs ? { },
-        }:
-        lib.nixosSystem {
-          inherit system;
-          specialArgs = { inherit inputs; } // extraSpecialArgs;
-          modules =
-            [
-              disko.nixosModules.disko
-              hostModule
-            ]
-            ++ extraModules;
+      forAllSystems = lib.genAttrs systems;
+      mkPkgs = system: import nixpkgs { inherit system; };
+      moduleFixture =
+        system:
+        import ./tests/module-fixture.nix {
+          inherit self nixpkgs system;
         };
-      piSdImageConfigurations = {
-        enschede-pi-1 = mkHost {
-          system = "aarch64-linux";
-          hostModule = ./nix/hosts/enschede-pi-1/default.nix;
-          extraModules = [ ./nix/modules/image/raspberry-pi-sd-image.nix ];
-          extraSpecialArgs = { imageBuild = true; };
-        };
-        enschede-pi-2 = mkHost {
-          system = "aarch64-linux";
-          hostModule = ./nix/hosts/enschede-pi-2/default.nix;
-          extraModules = [ ./nix/modules/image/raspberry-pi-sd-image.nix ];
-          extraSpecialArgs = { imageBuild = true; };
-        };
-        enschede-pi-3 = mkHost {
-          system = "aarch64-linux";
-          hostModule = ./nix/hosts/enschede-pi-3/default.nix;
-          extraModules = [ ./nix/modules/image/raspberry-pi-sd-image.nix ];
-          extraSpecialArgs = { imageBuild = true; };
-        };
-      };
     in
     {
-      nixosConfigurations = {
-        frankfurt-contabo-1 = mkHost {
-          system = "x86_64-linux";
-          hostModule = ./nix/hosts/frankfurt-contabo-1/default.nix;
+      nixosModules = rec {
+        base = ./modules/nixos/base.nix;
+        k3s = ./modules/nixos/k3s.nix;
+
+        roleK3sBootstrap = ./modules/nixos/roles/k3s-bootstrap.nix;
+        roleK3sServer = ./modules/nixos/roles/k3s-server.nix;
+        roleK3sAgent = ./modules/nixos/roles/k3s-agent.nix;
+        roleTailscaleSubnetRouter = ./modules/nixos/roles/tailscale-subnet-router.nix;
+
+        roleControlPlane = roleK3sServer;
+        roleWorker = roleK3sAgent;
+        roleNetworkTailscale = roleTailscaleSubnetRouter;
+
+        hardwareRaspberryPiAarch64 = ./modules/nixos/hardware/raspberry-pi-aarch64.nix;
+        imageRaspberryPiSdImage = ./modules/nixos/image/raspberry-pi-sd-image.nix;
+
+        roles = {
+          k3sBootstrap = roleK3sBootstrap;
+          k3sServer = roleK3sServer;
+          k3sAgent = roleK3sAgent;
+          tailscaleSubnetRouter = roleTailscaleSubnetRouter;
+          controlPlane = roleControlPlane;
+          worker = roleWorker;
+          networkTailscale = roleNetworkTailscale;
         };
-        enschede-gtx-960m-1 = mkHost {
-          system = "x86_64-linux";
-          hostModule = ./nix/hosts/enschede-gtx-960m-1/default.nix;
-        };
-        enschede-t1000-1 = mkHost {
-          system = "x86_64-linux";
-          hostModule = ./nix/hosts/enschede-t1000-1/default.nix;
-        };
-        enschede-rx7900xtx-1 = mkHost {
-          system = "x86_64-linux";
-          hostModule = ./nix/hosts/enschede-rx7900xtx-1/default.nix;
-        };
-        # Pi host modules reference `imageBuild` in their imports list, which
-        # forces the flag through specialArgs — otherwise NixOS resolves module
-        # args lazily through `_module.args` and `nix flake check` loops on
-        # infinite recursion. SD-image builds override to `true` below.
-        enschede-pi-1 = mkHost {
-          system = "aarch64-linux";
-          hostModule = ./nix/hosts/enschede-pi-1/default.nix;
-          extraSpecialArgs = { imageBuild = false; };
-        };
-        enschede-pi-2 = mkHost {
-          system = "aarch64-linux";
-          hostModule = ./nix/hosts/enschede-pi-2/default.nix;
-          extraSpecialArgs = { imageBuild = false; };
-        };
-        enschede-pi-3 = mkHost {
-          system = "aarch64-linux";
-          hostModule = ./nix/hosts/enschede-pi-3/default.nix;
-          extraSpecialArgs = { imageBuild = false; };
+
+        default = {
+          imports = [
+            base
+            k3s
+          ];
         };
       };
 
-      # Scoped disko configs: used to run `disko --mode format` against a
-      # single disk on a live host without re-formatting the root drive.
-      # disko's CLI has no --disk scoping flag, so expose the subset here and
-      # target via `disko --flake .#<name>`.
-      diskoConfigurations = {
-        enschede-t1000-1-backup = import ./nix/hosts/enschede-t1000-1/disko-backup.nix;
-      };
-
-      piSdImages = lib.mapAttrs (_: configuration: configuration.config.system.build.sdImage) piSdImageConfigurations;
-
-      deploy.nodes.frankfurt-contabo-1 = {
-        hostname = "167.86.79.203";
-        profiles.system = {
-          sshUser = "deploy";
-          user = "root";
-          sshOpts = [ "-p" "2222" ];
-          path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.frankfurt-contabo-1;
+      lib = {
+        nixosFleet = import ./lib/nixos/fleet-to-flake.nix {
+          inherit lib;
         };
       };
 
-      deploy.nodes.enschede-gtx-960m-1 = {
-        hostname = "100.89.41.92";
-        # This host has external-game-drive automounts and long-running game
-        # streaming services. deploy-rs can confirm before the remote magic
-        # rollback hook is ready, which rolls back an otherwise healthy switch.
-        magicRollback = false;
-        profiles.system = {
-          sshUser = "deploy";
-          user = "root";
-          sshOpts = [ "-p" "2222" ];
-          path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.enschede-gtx-960m-1;
-        };
-      };
-
-      deploy.nodes.enschede-t1000-1 = {
-        hostname = "100.103.175.110";
-        profiles.system = {
-          sshUser = "deploy";
-          user = "root";
-          sshOpts = [ "-p" "2222" ];
-          path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.enschede-t1000-1;
-        };
-      };
-
-      deploy.nodes.enschede-rx7900xtx-1 = {
-        hostname = "100.112.121.102";
-        # External game-drive automounts + long-running Wolf service make
-        # the magic-rollback confirm race-prone, same reasoning as the
-        # gtx-960m-1 node.
-        magicRollback = false;
-        profiles.system = {
-          sshUser = "deploy";
-          user = "root";
-          sshOpts = [ "-p" "2222" ];
-          path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.enschede-rx7900xtx-1;
-        };
-      };
-
-      deploy.nodes.enschede-pi-1 = {
-        hostname = "100.65.192.22";
-        profiles.system = {
-          sshUser = "deploy";
-          user = "root";
-          sshOpts = [ "-p" "2222" ];
-          path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.enschede-pi-1;
-        };
-      };
-
-      deploy.nodes.enschede-pi-2 = {
-        hostname = "enschede-pi-2";
-        profiles.system = {
-          sshUser = "deploy";
-          user = "root";
-          sshOpts = [ "-p" "2222" ];
-          path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.enschede-pi-2;
-        };
-      };
-
-      deploy.nodes.enschede-pi-3 = {
-        hostname = "enschede-pi-3";
-        profiles.system = {
-          sshUser = "deploy";
-          user = "root";
-          sshOpts = [ "-p" "2222" ];
-          path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.enschede-pi-3;
-        };
-      };
-
-      packages = lib.genAttrs supportedNixosAnywhereSystems (
+      checks = forAllSystems (
         system:
+        let
+          pkgs = mkPkgs system;
+          fixture = moduleFixture system;
+          fixtureDrvPath = builtins.unsafeDiscardStringContext fixture.config.system.build.toplevel.drvPath;
+        in
         {
-          nixos-anywhere = nixos-anywhere.packages.${system}.default;
-        }
-      );
-
-      apps = lib.genAttrs supportedNixosAnywhereSystems (
-        system:
-        {
-          nixos-anywhere = {
-            type = "app";
-            program = "${self.packages.${system}.nixos-anywhere}/bin/nixos-anywhere";
-          };
+          module-fixture = pkgs.runCommand "nix-platform-module-fixture" { } ''
+            printf '%s\n' '${fixtureDrvPath}' > "$out"
+          '';
         }
       );
     };

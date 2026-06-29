@@ -17,10 +17,13 @@
       - 'uses': 'actions/checkout@v6'
         'with':
           'fetch-depth': 0
-      - 'uses': 'gitleaks/gitleaks-action@v2'
-        'env':
-          'GITHUB_TOKEN': '${{ secrets.GITHUB_TOKEN }}'
-          'GITLEAKS_ENABLE_UPLOAD_ARTIFACT': 'false'
+      - 'name': 'Install gitleaks'
+        'run': |
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz -o "$RUNNER_TEMP/gitleaks/gitleaks.tar.gz"
+          tar -xzf "$RUNNER_TEMP/gitleaks/gitleaks.tar.gz" -C "$RUNNER_TEMP/gitleaks"
+      - 'name': 'Scan current tree and history'
+        'run': '"$RUNNER_TEMP/gitleaks/gitleaks" detect --source . --redact --exit-code 1'
 
   'nix':
     'name': 'Nix flake check'

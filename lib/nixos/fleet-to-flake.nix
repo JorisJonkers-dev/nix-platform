@@ -11,7 +11,16 @@ let
     storage-longhorn = "roleLonghornNode";
     gpu-utility = "roleGpuUtility";
     accelerator-gpu = "roleGpuUtility";
+    gpu-amd = "roleGpuAmd";
+    amd-gpu = "roleGpuAmd";
+    gpu-nvidia = "roleGpuNvidia";
+    nvidia-gpu = "roleGpuNvidia";
     node-label-applier = "roleNodeLabelApplier";
+    service-tailscale = "serviceTailscale";
+    media-storage = "serviceMediaStorage";
+    samba = "serviceSamba";
+    ollama-rocm = "serviceOllamaRocm";
+    btrfs-backup-snapshots = "serviceBtrfsBackupSnapshots";
     raspberry-pi-aarch64 = "hardwareRaspberryPiAarch64";
     raspberry-pi-sd-image = "imageRaspberryPiSdImage";
     tailscale-subnet-router = "roleTailscaleSubnetRouter";

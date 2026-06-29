@@ -13,7 +13,14 @@ lib.nixosSystem {
     self.nixosModules.roleTailscaleSubnetRouter
     self.nixosModules.roleLonghornNode
     self.nixosModules.roleGpuUtility
+    self.nixosModules.roleGpuAmd
+    self.nixosModules.roleGpuNvidia
     self.nixosModules.roleNodeLabelApplier
+    self.nixosModules.serviceTailscale
+    self.nixosModules.serviceMediaStorage
+    self.nixosModules.serviceSamba
+    self.nixosModules.serviceOllamaRocm
+    self.nixosModules.serviceBtrfsBackupSnapshots
     self.nixosModules.hardwareRaspberryPiAarch64
     (
       { pkgs, ... }:
@@ -87,6 +94,49 @@ lib.nixosSystem {
           enable = true;
           gpuVendors = [ "amd" ];
           installUtilities = false;
+        };
+
+        platformBlueprints.services.tailscale = {
+          enable = true;
+          extraUpFlags = [ "--accept-dns=false" ];
+        };
+
+        platformBlueprints.services.mediaStorage = {
+          enable = true;
+          owner = "deploy";
+          group = "deploy";
+          directories = [
+            "Completed"
+            "Films"
+            "Series"
+          ];
+          appStateRoot = "/var/lib/media-services";
+          appStateDirectories = [ "example-app" ];
+          viewsRoot = "/srv/media-views";
+          viewBinds.library = "/srv/media/Films";
+          scratch = {
+            path = "/srv/media-scratch";
+            nodatacow = true;
+          };
+        };
+
+        platformBlueprints.services.samba = {
+          enable = true;
+          openFirewall = false;
+          users.media-root = "All-access fixture share identity";
+          shares.media = {
+            path = "/srv/media";
+            browseable = "yes";
+            "read only" = "no";
+            "valid users" = "media-root";
+          };
+        };
+
+        platformBlueprints.services.btrfsBackupSnapshots = {
+          enable = true;
+          sourceSubvolume = "/srv/media/Backup";
+          sourceSnapshotDirectory = "/srv/media/.snapshots";
+          destinationSnapshotDirectory = "/srv/backup/.snapshots/Backup";
         };
 
         platformBlueprints.roles.nodeLabelApplier = {

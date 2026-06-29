@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/JorisJonkers-dev/nix-platform/compare/v0.3.0...v0.4.0) (2026-06-29)
+
+
+### Features
+
+* extract reusable nix platform modules ([#6](https://github.com/JorisJonkers-dev/nix-platform/issues/6)) ([12a5dfc](https://github.com/JorisJonkers-dev/nix-platform/commit/12a5dfcc7a671a610d4c782a101e8da88852a7a2))
+
 ## [0.3.0](https://github.com/JorisJonkers-dev/nix-platform/compare/v0.2.0...v0.3.0) (2026-06-29)
 
 

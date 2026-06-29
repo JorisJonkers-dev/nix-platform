@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/JorisJonkers-dev/nix-platform/compare/v0.2.0...v0.3.0) (2026-06-29)
+
+
+### Features
+
+* add deploy-v2 nix platform roles ([#3](https://github.com/JorisJonkers-dev/nix-platform/issues/3)) ([767f1a4](https://github.com/JorisJonkers-dev/nix-platform/commit/767f1a4780061521d18e5e5de9339130a549aa43))
+
 ## [0.2.0](https://github.com/JorisJonkers-dev/nix-platform/compare/v0.1.0...v0.2.0) (2026-06-28)
 
 

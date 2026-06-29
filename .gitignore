@@ -1,0 +1,17 @@
+.direnv/
+.env
+.env.*
+!.env.example
+result
+result-*
+
+.specify/
+specs/[0-9][0-9][0-9]-*/
+plans/
+planning/
+scratchpad/
+scratchpads/
+.agent-council/
+*.scratch.md
+*scratchpad*.md
+*agent-council*.md

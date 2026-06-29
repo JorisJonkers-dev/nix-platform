@@ -10,6 +10,18 @@
   'contents': 'read'
 
 'jobs':
+  'gitleaks':
+    'name': 'Gitleaks'
+    'runs-on': 'ubuntu-latest'
+    'steps':
+      - 'uses': 'actions/checkout@v6'
+        'with':
+          'fetch-depth': 0
+      - 'uses': 'gitleaks/gitleaks-action@v2'
+        'env':
+          'GITHUB_TOKEN': '${{ secrets.GITHUB_TOKEN }}'
+          'GITLEAKS_ENABLE_UPLOAD_ARTIFACT': 'false'
+
   'nix':
     'name': 'Nix flake check'
     'runs-on': 'ubuntu-latest'
@@ -22,6 +34,7 @@
     'name': 'Pipeline Complete'
     'if': '${{ always() }}'
     'needs':
+      - 'gitleaks'
       - 'nix'
     'runs-on': 'ubuntu-latest'
     'steps':

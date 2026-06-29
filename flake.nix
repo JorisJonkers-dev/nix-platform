@@ -32,13 +32,23 @@
         roleTailscaleSubnetRouter = ./modules/nixos/roles/tailscale-subnet-router.nix;
         roleLonghornNode = ./modules/nixos/roles/longhorn-node.nix;
         roleGpuUtility = ./modules/nixos/roles/gpu-utility.nix;
+        roleGpuAmd = ./modules/nixos/roles/gpu-amd.nix;
+        roleGpuNvidia = ./modules/nixos/roles/gpu-nvidia.nix;
         roleNodeLabelApplier = ./modules/nixos/roles/node-label-applier.nix;
+
+        serviceTailscale = ./modules/nixos/services/tailscale.nix;
+        serviceMediaStorage = ./modules/nixos/services/media-storage.nix;
+        serviceSamba = ./modules/nixos/services/samba.nix;
+        serviceOllamaRocm = ./modules/nixos/services/ollama-rocm.nix;
+        serviceBtrfsBackupSnapshots = ./modules/nixos/services/btrfs-backup-snapshots.nix;
 
         roleControlPlane = roleK3sServer;
         roleWorker = roleK3sAgent;
         roleNetworkTailscale = roleTailscaleSubnetRouter;
         roleStorageLonghorn = roleLonghornNode;
         roleAcceleratorGpu = roleGpuUtility;
+        roleGpuAMD = roleGpuAmd;
+        roleGpuNVIDIA = roleGpuNvidia;
 
         hardwareRaspberryPiAarch64 = ./modules/nixos/hardware/raspberry-pi-aarch64.nix;
         imageRaspberryPiSdImage = ./modules/nixos/image/raspberry-pi-sd-image.nix;
@@ -50,12 +60,22 @@
           tailscaleSubnetRouter = roleTailscaleSubnetRouter;
           longhornNode = roleLonghornNode;
           gpuUtility = roleGpuUtility;
+          gpuAmd = roleGpuAmd;
+          gpuNvidia = roleGpuNvidia;
           nodeLabelApplier = roleNodeLabelApplier;
           controlPlane = roleControlPlane;
           worker = roleWorker;
           networkTailscale = roleNetworkTailscale;
           storageLonghorn = roleStorageLonghorn;
           acceleratorGpu = roleAcceleratorGpu;
+        };
+
+        services = {
+          tailscale = serviceTailscale;
+          mediaStorage = serviceMediaStorage;
+          samba = serviceSamba;
+          ollamaRocm = serviceOllamaRocm;
+          btrfsBackupSnapshots = serviceBtrfsBackupSnapshots;
         };
 
         default = {

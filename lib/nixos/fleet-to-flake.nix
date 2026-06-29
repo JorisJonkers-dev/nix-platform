@@ -7,6 +7,11 @@ let
     k3s-control-plane = "roleK3sServer";
     k3s-agent = "roleK3sAgent";
     k3s-worker = "roleK3sAgent";
+    longhorn-node = "roleLonghornNode";
+    storage-longhorn = "roleLonghornNode";
+    gpu-utility = "roleGpuUtility";
+    accelerator-gpu = "roleGpuUtility";
+    node-label-applier = "roleNodeLabelApplier";
     raspberry-pi-aarch64 = "hardwareRaspberryPiAarch64";
     raspberry-pi-sd-image = "imageRaspberryPiSdImage";
     tailscale-subnet-router = "roleTailscaleSubnetRouter";

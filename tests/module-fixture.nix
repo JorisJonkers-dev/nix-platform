@@ -11,6 +11,9 @@ lib.nixosSystem {
     self.nixosModules.roleK3sServer
     self.nixosModules.roleK3sAgent
     self.nixosModules.roleTailscaleSubnetRouter
+    self.nixosModules.roleLonghornNode
+    self.nixosModules.roleGpuUtility
+    self.nixosModules.roleNodeLabelApplier
     self.nixosModules.hardwareRaspberryPiAarch64
     (
       { pkgs, ... }:
@@ -71,6 +74,33 @@ lib.nixosSystem {
           advertiseRoutes = [ "10.42.0.0/16" ];
           useForK3sFlannel = true;
           waitForK3s = true;
+        };
+
+        platformBlueprints.roles.longhornNode = {
+          enable = true;
+          enableOpenIscsi = false;
+          enableNfsClient = false;
+          installUtilities = false;
+        };
+
+        platformBlueprints.roles.gpuUtility = {
+          enable = true;
+          gpuVendors = [ "amd" ];
+          installUtilities = false;
+        };
+
+        platformBlueprints.roles.nodeLabelApplier = {
+          enable = true;
+          labels = self.lib.nodeContractLabels.mkNodeLabels {
+            nodeName = "fixture-node";
+            site = "fixture-site";
+            roles = [ "k3s-server" ];
+            capabilities = [
+              "gpu"
+              "storage-longhorn"
+            ];
+            gpuVendors = [ "amd" ];
+          };
         };
 
         environment.systemPackages = [ pkgs.hello ];

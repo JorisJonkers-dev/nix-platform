@@ -30,10 +30,15 @@
         roleK3sServer = ./modules/nixos/roles/k3s-server.nix;
         roleK3sAgent = ./modules/nixos/roles/k3s-agent.nix;
         roleTailscaleSubnetRouter = ./modules/nixos/roles/tailscale-subnet-router.nix;
+        roleLonghornNode = ./modules/nixos/roles/longhorn-node.nix;
+        roleGpuUtility = ./modules/nixos/roles/gpu-utility.nix;
+        roleNodeLabelApplier = ./modules/nixos/roles/node-label-applier.nix;
 
         roleControlPlane = roleK3sServer;
         roleWorker = roleK3sAgent;
         roleNetworkTailscale = roleTailscaleSubnetRouter;
+        roleStorageLonghorn = roleLonghornNode;
+        roleAcceleratorGpu = roleGpuUtility;
 
         hardwareRaspberryPiAarch64 = ./modules/nixos/hardware/raspberry-pi-aarch64.nix;
         imageRaspberryPiSdImage = ./modules/nixos/image/raspberry-pi-sd-image.nix;
@@ -43,9 +48,14 @@
           k3sServer = roleK3sServer;
           k3sAgent = roleK3sAgent;
           tailscaleSubnetRouter = roleTailscaleSubnetRouter;
+          longhornNode = roleLonghornNode;
+          gpuUtility = roleGpuUtility;
+          nodeLabelApplier = roleNodeLabelApplier;
           controlPlane = roleControlPlane;
           worker = roleWorker;
           networkTailscale = roleNetworkTailscale;
+          storageLonghorn = roleStorageLonghorn;
+          acceleratorGpu = roleAcceleratorGpu;
         };
 
         default = {
@@ -58,6 +68,9 @@
 
       lib = {
         nixosFleet = import ./lib/nixos/fleet-to-flake.nix {
+          inherit lib;
+        };
+        nodeContractLabels = import ./lib/nixos/node-contract-labels.nix {
           inherit lib;
         };
       };

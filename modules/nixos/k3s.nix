@@ -1,23 +1,25 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   cfg = config.platformBlueprints.k3s;
   effectiveRole =
-    if cfg.role != null then
-      cfg.role
-    else
-      config.services.k3s.role;
+    if cfg.role != null
+    then cfg.role
+    else config.services.k3s.role;
   isAgent = effectiveRole == "agent";
   isServer = effectiveRole == "server";
   tokenDirectory =
-    if cfg.joinTokenFile != null then
-      builtins.dirOf cfg.joinTokenFile
-    else
-      null;
+    if cfg.joinTokenFile != null
+    then builtins.dirOf cfg.joinTokenFile
+    else null;
   labelFlags = lib.mapAttrsToList (name: value: "--node-label=${name}=${value}") cfg.nodeLabels;
   taintFlags = map (taint: "--node-taint=${taint}") cfg.nodeTaints;
   flannelFlags = lib.optional (cfg.flannelInterface != null) "--flannel-iface=${cfg.flannelInterface}";
   agentFlags =
-    lib.optionals (cfg.joinTokenFile != null) [ "--token-file=${cfg.joinTokenFile}" ]
+    lib.optionals (cfg.joinTokenFile != null) ["--token-file=${cfg.joinTokenFile}"]
     ++ cfg.agentExtraFlags;
   serverFlags = cfg.serverExtraFlags;
   interfaceWaitScript = ''
@@ -33,8 +35,7 @@ let
     echo "${cfg.waitForInterface.name} did not receive a global IPv4 address within ${toString cfg.waitForInterface.timeoutSeconds}s" >&2
     exit 1
   '';
-in
-{
+in {
   options.platformBlueprints.k3s = {
     enable = lib.mkEnableOption "generic k3s host behavior";
 
@@ -61,13 +62,13 @@ in
 
     nodeLabels = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = { };
+      default = {};
       description = "Kubernetes node labels emitted as k3s flags.";
     };
 
     nodeTaints = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Kubernetes node taints emitted as k3s flags.";
     };
 
@@ -93,7 +94,7 @@ in
 
     requiredServices = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Optional systemd services that k3s should require and start after.";
     };
 
@@ -105,13 +106,13 @@ in
 
     serverExtraFlags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Additional flags for server nodes.";
     };
 
     agentExtraFlags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Additional flags for agent nodes.";
     };
   };
@@ -151,9 +152,9 @@ in
 
     (lib.mkIf (cfg.openFirewall) {
       networking.firewall.allowedTCPPorts =
-        [ 10250 ]
-        ++ lib.optionals isServer [ 6443 ];
-      networking.firewall.allowedUDPPorts = [ 8472 ];
+        [10250]
+        ++ lib.optionals isServer [6443];
+      networking.firewall.allowedUDPPorts = [8472];
     })
 
     (lib.mkIf (tokenDirectory != null) {
@@ -162,7 +163,7 @@ in
       ];
     })
 
-    (lib.mkIf (cfg.requiredServices != [ ]) {
+    (lib.mkIf (cfg.requiredServices != []) {
       systemd.services.k3s = {
         after = cfg.requiredServices;
         requires = cfg.requiredServices;

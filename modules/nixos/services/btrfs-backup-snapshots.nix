@@ -1,8 +1,11 @@
-{ config, lib, pkgs, ... }:
-let
-  cfg = config.platformBlueprints.services.btrfsBackupSnapshots;
-in
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.platformBlueprints.services.btrfsBackupSnapshots;
+in {
   options.platformBlueprints.services.btrfsBackupSnapshots = {
     enable = lib.mkEnableOption "scheduled btrfs snapshot send/receive backup";
 
@@ -175,7 +178,7 @@ in
 
     systemd.timers.${cfg.serviceName} = {
       description = "Trigger ${cfg.serviceName}";
-      wantedBy = [ "timers.target" ];
+      wantedBy = ["timers.target"];
       timerConfig = {
         OnCalendar = cfg.calendar;
         Persistent = true;

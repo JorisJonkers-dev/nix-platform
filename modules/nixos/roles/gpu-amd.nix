@@ -1,11 +1,15 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   cfg = config.platformBlueprints.roles.gpuAmd;
 
   rocmSmiWrapped = pkgs.symlinkJoin {
     name = "rocm-smi-wrapped";
-    paths = [ pkgs.rocmPackages.rocm-smi ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
+    paths = [pkgs.rocmPackages.rocm-smi];
+    nativeBuildInputs = [pkgs.makeWrapper];
     postBuild = ''
       wrapProgram $out/bin/rocm-smi \
         --prefix LD_LIBRARY_PATH : ${pkgs.libdrm}/lib
@@ -18,9 +22,8 @@ let
     "hip"
     "rocm"
   ];
-in
-{
-  imports = [ ./gpu-utility.nix ];
+in {
+  imports = [./gpu-utility.nix];
 
   options.platformBlueprints.roles.gpuAmd = {
     enable = lib.mkEnableOption "AMD GPU host role with Mesa, ROCm, and scheduler labels";
@@ -80,14 +83,14 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      boot.initrd.kernelModules = [ "amdgpu" ];
+      boot.initrd.kernelModules = ["amdgpu"];
       boot.kernelModules = [
         "amdgpu"
         "kvm-amd"
       ];
 
       hardware.enableRedistributableFirmware = cfg.enableRedistributableFirmware;
-      hardware.firmware = [ pkgs.linux-firmware ];
+      hardware.firmware = [pkgs.linux-firmware];
       hardware.graphics = {
         enable = true;
         enable32Bit = cfg.enable32BitGraphics;
@@ -108,7 +111,7 @@ in
 
       platformBlueprints.roles.gpuUtility = {
         enable = true;
-        gpuVendors = [ "amd" ];
+        gpuVendors = ["amd"];
         installUtilities = false;
       };
 
@@ -122,11 +125,10 @@ in
 
     (lib.mkIf cfg.allowUnfreePackages {
       nixpkgs.config.allowUnfreePredicate = lib.mkDefault (
-        pkg:
-        let
+        pkg: let
           name = lib.getName pkg;
         in
-        lib.any (prefix: lib.hasPrefix prefix name) unfreeNamePrefixes
+          lib.any (prefix: lib.hasPrefix prefix name) unfreeNamePrefixes
       );
     })
 

@@ -1,11 +1,13 @@
-{ config, lib, ... }:
-let
+{
+  config,
+  lib,
+  ...
+}: let
   cfg = config.platformBlueprints.roles.tailscaleSubnetRouter;
   advertiseRoutesFlag =
-    lib.optional (cfg.advertiseRoutes != [ ])
-      "--advertise-routes=${lib.concatStringsSep "," cfg.advertiseRoutes}";
-in
-{
+    lib.optional (cfg.advertiseRoutes != [])
+    "--advertise-routes=${lib.concatStringsSep "," cfg.advertiseRoutes}";
+in {
   options.platformBlueprints.roles.tailscaleSubnetRouter = {
     enable = lib.mkEnableOption "generic Tailscale subnet router role";
 
@@ -17,13 +19,13 @@ in
 
     extraUpFlags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Additional flags passed to tailscale up.";
     };
 
     advertiseRoutes = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "CIDR routes advertised by this Tailscale subnet router.";
     };
 
@@ -54,13 +56,14 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      services.tailscale = {
-        enable = true;
-        extraUpFlags = advertiseRoutesFlag ++ cfg.extraUpFlags;
-      }
-      // lib.optionalAttrs (cfg.authKeyFile != null) {
-        authKeyFile = cfg.authKeyFile;
-      };
+      services.tailscale =
+        {
+          enable = true;
+          extraUpFlags = advertiseRoutesFlag ++ cfg.extraUpFlags;
+        }
+        // lib.optionalAttrs (cfg.authKeyFile != null) {
+          authKeyFile = cfg.authKeyFile;
+        };
 
       networking.firewall.checkReversePath = lib.mkDefault "loose";
       boot.kernel.sysctl = {
@@ -70,7 +73,7 @@ in
     }
 
     (lib.mkIf cfg.trustInterface {
-      networking.firewall.trustedInterfaces = [ cfg.interfaceName ];
+      networking.firewall.trustedInterfaces = [cfg.interfaceName];
     })
 
     (lib.mkIf cfg.useForK3sFlannel {

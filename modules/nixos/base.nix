@@ -1,16 +1,19 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   cfg = config.platformBlueprints.base;
   deployUser = cfg.deployUser;
   resolverText =
     ''
       ${lib.concatMapStringsSep "\n" (server: "nameserver ${server}") cfg.resolver.nameservers}
     ''
-    + lib.optionalString (cfg.resolver.options != [ ]) ''
+    + lib.optionalString (cfg.resolver.options != []) ''
       options ${lib.concatStringsSep " " cfg.resolver.options}
     '';
-in
-{
+in {
   options.platformBlueprints.base = {
     enable = lib.mkEnableOption "generic platform host baseline";
 
@@ -46,13 +49,13 @@ in
 
       allowedTCPPorts = lib.mkOption {
         type = lib.types.listOf lib.types.port;
-        default = [ ];
+        default = [];
         description = "Consumer-supplied baseline TCP firewall ports.";
       };
 
       allowedUDPPorts = lib.mkOption {
         type = lib.types.listOf lib.types.port;
-        default = [ ];
+        default = [];
         description = "Consumer-supplied baseline UDP firewall ports.";
       };
     };
@@ -66,19 +69,19 @@ in
 
       ports = lib.mkOption {
         type = lib.types.listOf lib.types.port;
-        default = [ 22 ];
+        default = [22];
         description = "Consumer-supplied OpenSSH ports.";
       };
 
       allowUsers = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [ ];
+        default = [];
         description = "Optional OpenSSH AllowUsers list.";
       };
 
       settings = lib.mkOption {
         type = lib.types.attrs;
-        default = { };
+        default = {};
         description = "Additional OpenSSH settings supplied by the consumer.";
       };
     };
@@ -110,13 +113,13 @@ in
 
       extraGroups = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [ "wheel" ];
+        default = ["wheel"];
         description = "Extra groups for the deploy user.";
       };
 
       authorizedKeys = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [ ];
+        default = [];
         description = "Consumer-supplied SSH public keys for the deploy user.";
       };
 
@@ -130,13 +133,13 @@ in
     resolver = {
       nameservers = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [ ];
+        default = [];
         description = "Static resolver nameservers. Empty leaves resolver ownership to the consumer.";
       };
 
       options = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [ ];
+        default = [];
         description = "Static resolver options written when nameservers are supplied.";
       };
     };
@@ -172,7 +175,7 @@ in
             PubkeyAuthentication = lib.mkDefault true;
             X11Forwarding = lib.mkDefault false;
           }
-          // lib.optionalAttrs (cfg.ssh.allowUsers != [ ]) {
+          // lib.optionalAttrs (cfg.ssh.allowUsers != []) {
             AllowUsers = cfg.ssh.allowUsers;
           }
           // cfg.ssh.settings;
@@ -180,7 +183,7 @@ in
 
       environment.systemPackages = cfg.packages;
 
-      warnings = lib.optional (deployUser.enable && deployUser.authorizedKeys == [ ]) ''
+      warnings = lib.optional (deployUser.enable && deployUser.authorizedKeys == []) ''
         platformBlueprints.base.deployUser.enable is true, but no deploy SSH public keys were supplied.
       '';
     }
@@ -190,7 +193,7 @@ in
       boot.loader.efi.canTouchEfiVariables = true;
     })
 
-    (lib.mkIf (cfg.resolver.nameservers != [ ]) {
+    (lib.mkIf (cfg.resolver.nameservers != []) {
       networking.resolvconf.enable = false;
       environment.etc."resolv.conf" = {
         mode = "0644";
@@ -200,7 +203,7 @@ in
 
     (lib.mkIf deployUser.enable {
       users.groups.${deployUser.name} =
-        { }
+        {}
         // lib.optionalAttrs (deployUser.gid != null) {
           gid = deployUser.gid;
         };

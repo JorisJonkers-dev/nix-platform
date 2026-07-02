@@ -1,10 +1,19 @@
-{ config, lib, ... }:
-let
+{
+  config,
+  lib,
+  ...
+}: let
   cfg = config.platformBlueprints.roles.k3sServer;
   oidc = cfg.oidc;
   oidcEnabled = oidc.issuerUrl != null || oidc.clientId != null;
-  oidcIssuerUrl = if oidc.issuerUrl == null then "" else oidc.issuerUrl;
-  oidcClientId = if oidc.clientId == null then "" else oidc.clientId;
+  oidcIssuerUrl =
+    if oidc.issuerUrl == null
+    then ""
+    else oidc.issuerUrl;
+  oidcClientId =
+    if oidc.clientId == null
+    then ""
+    else oidc.clientId;
   oidcFlags =
     [
       "--kube-apiserver-arg=oidc-issuer-url=${oidcIssuerUrl}"
@@ -16,9 +25,8 @@ let
       "--kube-apiserver-arg=oidc-groups-claim=${oidc.groupsClaim}"
       "--kube-apiserver-arg=oidc-groups-prefix=${oidc.groupsPrefix}"
     ];
-in
-{
-  imports = [ ../k3s.nix ];
+in {
+  imports = [../k3s.nix];
 
   options.platformBlueprints.roles.k3sServer = {
     enable = lib.mkEnableOption "generic k3s server role";
@@ -81,7 +89,7 @@ in
 
     extraFlags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Additional k3s server flags for this role.";
     };
   };
@@ -102,9 +110,9 @@ in
       enable = true;
       role = lib.mkDefault "server";
       serverExtraFlags =
-        lib.optionals cfg.disableTraefik [ "--disable=traefik" ]
-        ++ lib.optionals cfg.disableServiceLb [ "--disable=servicelb" ]
-        ++ [ "--write-kubeconfig-mode=${cfg.writeKubeconfigMode}" ]
+        lib.optionals cfg.disableTraefik ["--disable=traefik"]
+        ++ lib.optionals cfg.disableServiceLb ["--disable=servicelb"]
+        ++ ["--write-kubeconfig-mode=${cfg.writeKubeconfigMode}"]
         ++ lib.optionals oidcEnabled oidcFlags
         ++ cfg.extraFlags;
     };

@@ -1,5 +1,4 @@
-{ lib }:
-let
+{lib}: let
   canonicalPrefix = "platform.jorisjonkers.dev";
   transitionPrefix = "personal-stack";
 
@@ -8,52 +7,45 @@ let
     value = "true";
   };
 
-  prefixedBoolLabels =
-    prefix: kind: values:
+  prefixedBoolLabels = prefix: kind: values:
     map (value: boolLabel "${prefix}/${kind}-${value}") values;
 
-  optionalLabel =
-    name: value:
+  optionalLabel = name: value:
     lib.optional (value != null && value != "") {
       inherit name value;
     };
 
   labelsFromList = labels: builtins.listToAttrs labels;
-in
-rec {
+in rec {
   inherit canonicalPrefix transitionPrefix;
 
-  mkRoleLabels =
-    roles:
+  mkRoleLabels = roles:
     labelsFromList (
       prefixedBoolLabels canonicalPrefix "role" roles
       ++ prefixedBoolLabels transitionPrefix "role" roles
     );
 
-  mkCapabilityLabels =
-    capabilities:
+  mkCapabilityLabels = capabilities:
     labelsFromList (
       prefixedBoolLabels canonicalPrefix "capability" capabilities
       ++ prefixedBoolLabels transitionPrefix "capability" capabilities
     );
 
-  mkGpuLabels =
-    gpuVendors:
+  mkGpuLabels = gpuVendors:
     labelsFromList (
       prefixedBoolLabels canonicalPrefix "gpu" gpuVendors
       ++ prefixedBoolLabels transitionPrefix "gpu" gpuVendors
     );
 
-  mkNodeLabels =
-    {
-      nodeName ? null,
-      site ? null,
-      zone ? null,
-      roles ? [ ],
-      capabilities ? [ ],
-      gpuVendors ? [ ],
-      extraLabels ? { },
-    }:
+  mkNodeLabels = {
+    nodeName ? null,
+    site ? null,
+    zone ? null,
+    roles ? [],
+    capabilities ? [],
+    gpuVendors ? [],
+    extraLabels ? {},
+  }:
     labelsFromList (
       optionalLabel "${canonicalPrefix}/node" nodeName
       ++ optionalLabel "${transitionPrefix}/node" nodeName

@@ -1,10 +1,13 @@
-{ config, lib, pkgs, ... }:
-let
-  cfg = config.platformBlueprints.roles.longhornNode;
-  labelLib = import ../../../lib/nixos/node-contract-labels.nix { inherit lib; };
-in
 {
-  imports = [ ../k3s.nix ];
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.platformBlueprints.roles.longhornNode;
+  labelLib = import ../../../lib/nixos/node-contract-labels.nix {inherit lib;};
+in {
+  imports = [../k3s.nix];
 
   options.platformBlueprints.roles.longhornNode = {
     enable = lib.mkEnableOption "generic Longhorn-ready Kubernetes node role";
@@ -39,20 +42,20 @@ in
 
     nodeLabels = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = labelLib.mkCapabilityLabels [ "storage-longhorn" ];
+      default = labelLib.mkCapabilityLabels ["storage-longhorn"];
       description = "Kubernetes node labels added through the shared k3s module.";
     };
 
     nodeTaints = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Optional Kubernetes taints added through the shared k3s module.";
     };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      boot.kernelModules = [ "iscsi_tcp" ];
+      boot.kernelModules = ["iscsi_tcp"];
 
       platformBlueprints.k3s = {
         nodeLabels = cfg.nodeLabels;
@@ -65,7 +68,7 @@ in
     })
 
     (lib.mkIf cfg.enableNfsClient {
-      environment.systemPackages = [ pkgs.nfs-utils ];
+      environment.systemPackages = [pkgs.nfs-utils];
     })
 
     (lib.mkIf cfg.installUtilities {

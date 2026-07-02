@@ -1,5 +1,9 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   cfg = config.platformBlueprints.roles.gpuNvidia;
 
   unfreeNamePrefixes = [
@@ -9,9 +13,8 @@ let
     "libnv"
     "nvidia-"
   ];
-in
-{
-  imports = [ ./gpu-utility.nix ];
+in {
+  imports = [./gpu-utility.nix];
 
   options.platformBlueprints.roles.gpuNvidia = {
     enable = lib.mkEnableOption "NVIDIA GPU host role with container runtime integration";
@@ -65,7 +68,7 @@ in
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      services.xserver.videoDrivers = [ "nvidia" ];
+      services.xserver.videoDrivers = ["nvidia"];
       hardware.graphics.enable = true;
       hardware.nvidia = {
         open = cfg.openDriver;
@@ -75,20 +78,19 @@ in
 
       platformBlueprints.roles.gpuUtility = {
         enable = true;
-        gpuVendors = [ "nvidia" ];
+        gpuVendors = ["nvidia"];
         installUtilities = false;
       };
     }
 
     (lib.mkIf cfg.allowUnfreePackages {
       nixpkgs.config.allowUnfreePredicate = lib.mkDefault (
-        pkg:
-        let
+        pkg: let
           name = lib.getName pkg;
           license = pkg.meta.license.shortName or "";
         in
-        lib.any (prefix: lib.hasPrefix prefix name) unfreeNamePrefixes
-        || license == "CUDA EULA"
+          lib.any (prefix: lib.hasPrefix prefix name) unfreeNamePrefixes
+          || license == "CUDA EULA"
       );
     })
 
@@ -102,8 +104,7 @@ in
     })
 
     (lib.mkIf cfg.skipCdiGeneratorWhenDriverMissing {
-      systemd.services.nvidia-container-toolkit-cdi-generator.unitConfig.ConditionPathExists =
-        "/proc/driver/nvidia/version";
+      systemd.services.nvidia-container-toolkit-cdi-generator.unitConfig.ConditionPathExists = "/proc/driver/nvidia/version";
     })
 
     (lib.mkIf cfg.installUtilities {

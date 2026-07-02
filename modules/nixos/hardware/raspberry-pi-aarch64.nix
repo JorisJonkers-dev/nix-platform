@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+{lib, ...}: {
   # Runtime hardware bits for aarch64 Raspberry Pi workers. These must apply to
   # both the SD image build and steady-state nixos-rebuild switch; otherwise the
   # post-deploy initrd loses the SD/eMMC driver and the kernel hangs silently

@@ -1,5 +1,8 @@
-{ config, lib, ... }:
-let
+{
+  config,
+  lib,
+  ...
+}: let
   cfg = config.platformBlueprints.services.samba;
 
   mkUser = description: {
@@ -7,8 +10,7 @@ let
     group = cfg.group;
     description = description;
   };
-in
-{
+in {
   options.platformBlueprints.services.samba = {
     enable = lib.mkEnableOption "generic Samba service with caller-owned shares";
 
@@ -38,7 +40,7 @@ in
 
     users = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = { };
+      default = {};
       example = {
         media-root = "All-access media share identity";
       };
@@ -47,7 +49,7 @@ in
 
     shares = lib.mkOption {
       type = lib.types.attrsOf (lib.types.attrsOf lib.types.str);
-      default = { };
+      default = {};
       example = {
         media = {
           path = "/srv/media";
@@ -60,22 +62,24 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    users.groups.${cfg.group} = { };
+    users.groups.${cfg.group} = {};
     users.users = lib.mapAttrs (_: mkUser) cfg.users;
 
     services.samba = {
       enable = true;
       openFirewall = cfg.openFirewall;
-      settings = {
-        global = {
-          workgroup = cfg.workgroup;
-          "server string" = cfg.serverString;
-          security = "user";
-          "map to guest" = "Bad User";
-          "server role" = "standalone server";
-          "server min protocol" = "SMB2";
-        };
-      } // cfg.shares;
+      settings =
+        {
+          global = {
+            workgroup = cfg.workgroup;
+            "server string" = cfg.serverString;
+            security = "user";
+            "map to guest" = "Bad User";
+            "server role" = "standalone server";
+            "server min protocol" = "SMB2";
+          };
+        }
+        // cfg.shares;
     };
   };
 }

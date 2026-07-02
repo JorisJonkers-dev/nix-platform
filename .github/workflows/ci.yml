@@ -26,12 +26,12 @@
         'run': '"$RUNNER_TEMP/gitleaks/gitleaks" detect --source . --redact --exit-code 1'
 
   'nix':
-    'name': 'Nix flake check'
-    'runs-on': 'ubuntu-latest'
-    'steps':
-      - 'uses': 'actions/checkout@v6'
-      - 'uses': 'DeterminateSystems/nix-installer-action@v22'
-      - 'run': 'nix flake check --print-build-logs'
+    'name': 'Nix CI'
+    'uses': 'JorisJonkers-dev/github-workflows/.github/workflows/nix-ci.yml@v0.10.2'
+    'with':
+      'format-command': ''
+      'statix-command': ''
+      'deadnix-command': ''
 
   'pipeline-complete':
     'name': 'Pipeline Complete'

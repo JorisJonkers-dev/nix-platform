@@ -1,8 +1,11 @@
-{ config, lib, pkgs, ... }:
-let
-  cfg = config.platformBlueprints.services.ollamaRocm;
-in
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.platformBlueprints.services.ollamaRocm;
+in {
   options.platformBlueprints.services.ollamaRocm = {
     enable = lib.mkEnableOption "Ollama service using the ROCm package variant";
 
@@ -32,13 +35,13 @@ in
 
     loadModels = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Models pulled during activation by the NixOS Ollama module.";
     };
 
     environmentVariables = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = { };
+      default = {};
       example = {
         HIP_VISIBLE_DEVICES = "0";
         OLLAMA_KEEP_ALIVE = "5m";
@@ -80,7 +83,7 @@ in
     }
 
     (lib.mkIf cfg.openFirewall {
-      networking.firewall.allowedTCPPorts = [ cfg.port ];
+      networking.firewall.allowedTCPPorts = [cfg.port];
     })
 
     (lib.mkIf cfg.requireAmdGraphics {

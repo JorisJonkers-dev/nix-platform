@@ -1,17 +1,22 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   cfg = config.platformBlueprints.roles.nodeLabelApplier;
   labelArgs = lib.mapAttrsToList (name: value: "${name}=${value}") cfg.labels;
-  labelCommands = map (
-    label:
-    "${cfg.kubectlPackage}/bin/kubectl --kubeconfig ${lib.escapeShellArg cfg.kubeconfigFile} label node ${lib.escapeShellArg cfg.nodeName} ${lib.escapeShellArg label} --overwrite"
-  ) labelArgs;
-  taintCommands = map (
-    taint:
-    "${cfg.kubectlPackage}/bin/kubectl --kubeconfig ${lib.escapeShellArg cfg.kubeconfigFile} taint node ${lib.escapeShellArg cfg.nodeName} ${lib.escapeShellArg taint} --overwrite"
-  ) cfg.taints;
-in
-{
+  labelCommands =
+    map (
+      label: "${cfg.kubectlPackage}/bin/kubectl --kubeconfig ${lib.escapeShellArg cfg.kubeconfigFile} label node ${lib.escapeShellArg cfg.nodeName} ${lib.escapeShellArg label} --overwrite"
+    )
+    labelArgs;
+  taintCommands =
+    map (
+      taint: "${cfg.kubectlPackage}/bin/kubectl --kubeconfig ${lib.escapeShellArg cfg.kubeconfigFile} taint node ${lib.escapeShellArg cfg.nodeName} ${lib.escapeShellArg taint} --overwrite"
+    )
+    cfg.taints;
+in {
   options.platformBlueprints.roles.nodeLabelApplier = {
     enable = lib.mkEnableOption "generic Kubernetes node label and taint applier";
 
@@ -37,25 +42,25 @@ in
 
     labels = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = { };
+      default = {};
       description = "Kubernetes labels applied with --overwrite.";
     };
 
     taints = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Kubernetes taints applied with --overwrite.";
     };
 
     after = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "k3s.service" ];
+      default = ["k3s.service"];
       description = "Systemd units that should start before node-label-applier.";
     };
 
     wantedBy = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "multi-user.target" ];
+      default = ["multi-user.target"];
       description = "Systemd targets that want node-label-applier.";
     };
   };
@@ -63,7 +68,7 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = cfg.labels != { } || cfg.taints != [ ];
+        assertion = cfg.labels != {} || cfg.taints != [];
         message = "nodeLabelApplier requires at least one label or taint.";
       }
     ];
@@ -77,7 +82,7 @@ in
         Type = "oneshot";
         RemainAfterExit = true;
       };
-      path = [ cfg.kubectlPackage ];
+      path = [cfg.kubectlPackage];
       script = lib.concatStringsSep "\n" (labelCommands ++ taintCommands);
     };
   };

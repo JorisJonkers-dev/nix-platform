@@ -1,50 +1,48 @@
-{ config, lib, pkgs, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   cfg = config.platformBlueprints.services.mediaStorage;
 
-  dirRules =
-    path:
-    [
-      "d ${path} ${cfg.directoryMode} ${cfg.owner} ${cfg.group} - -"
-      "z ${path} ${cfg.directoryMode} ${cfg.owner} ${cfg.group} - -"
-    ];
+  dirRules = path: [
+    "d ${path} ${cfg.directoryMode} ${cfg.owner} ${cfg.group} - -"
+    "z ${path} ${cfg.directoryMode} ${cfg.owner} ${cfg.group} - -"
+  ];
 
   mediaDirectoryRules =
     lib.flatten (map (name: dirRules "${cfg.root}/${name}") cfg.directories);
 
-  appStateRules =
-    lib.optionals (cfg.appStateRoot != null) (
-      [ "d ${cfg.appStateRoot} 0755 ${cfg.owner} ${cfg.group} - -" ]
-      ++ map (name: "d ${cfg.appStateRoot}/${name} 0755 ${cfg.owner} ${cfg.group} - -") cfg.appStateDirectories
-    );
+  appStateRules = lib.optionals (cfg.appStateRoot != null) (
+    ["d ${cfg.appStateRoot} 0755 ${cfg.owner} ${cfg.group} - -"]
+    ++ map (name: "d ${cfg.appStateRoot}/${name} 0755 ${cfg.owner} ${cfg.group} - -") cfg.appStateDirectories
+  );
 
-  scratchRules =
-    lib.optionals (cfg.scratch.path != null) (
-      dirRules cfg.scratch.path
-      ++ lib.optional cfg.scratch.nodatacow "h ${cfg.scratch.path} - - - - +C"
-    );
+  scratchRules = lib.optionals (cfg.scratch.path != null) (
+    dirRules cfg.scratch.path
+    ++ lib.optional cfg.scratch.nodatacow "h ${cfg.scratch.path} - - - - +C"
+  );
 
   viewTarget = name: "${cfg.viewsRoot}/${name}";
-  viewRules =
-    lib.optionals (cfg.viewBinds != { }) (
-      [ "d ${cfg.viewsRoot} 0755 root root - -" ]
-      ++ lib.mapAttrsToList (name: _: "d ${viewTarget name} 0755 root root - -") cfg.viewBinds
-    );
+  viewRules = lib.optionals (cfg.viewBinds != {}) (
+    ["d ${cfg.viewsRoot} 0755 root root - -"]
+    ++ lib.mapAttrsToList (name: _: "d ${viewTarget name} 0755 root root - -") cfg.viewBinds
+  );
 
   physicalFileSystems =
     lib.mapAttrs
-      (
-        _: mount:
-        {
-          inherit (mount) device fsType options;
-        }
-      )
-      cfg.mounts;
+    (
+      _: mount: {
+        inherit (mount) device fsType options;
+      }
+    )
+    cfg.mounts;
 
   bindFileSystems =
     lib.mapAttrs'
-      (
-        name: source:
+    (
+      name: source:
         lib.nameValuePair (viewTarget name) {
           device = source;
           fsType = "none";
@@ -53,10 +51,9 @@ let
             "nofail"
           ];
         }
-      )
-      cfg.viewBinds;
-in
-{
+    )
+    cfg.viewBinds;
+in {
   options.platformBlueprints.services.mediaStorage = {
     enable = lib.mkEnableOption "generic media storage directories, mounts, and views";
 
@@ -86,7 +83,7 @@ in
 
     directories = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       example = [
         "Completed"
         "Films"
@@ -104,7 +101,7 @@ in
 
     appStateDirectories = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Relative directories created under appStateRoot.";
     };
 
@@ -136,7 +133,7 @@ in
           };
         };
       });
-      default = { };
+      default = {};
       description = "Concrete media mounts keyed by mountpoint. Values are caller-owned and not provided by this library.";
     };
 
@@ -148,7 +145,7 @@ in
 
     viewBinds = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = { };
+      default = {};
       example = {
         "library/Films" = "/srv/media/Films";
       };
@@ -191,14 +188,14 @@ in
     }
 
     (lib.mkIf cfg.installNtfsTools {
-      environment.systemPackages = [ pkgs.ntfs3g ];
+      environment.systemPackages = [pkgs.ntfs3g];
     })
 
     (lib.mkIf (cfg.scratch.path != null && cfg.scratch.quotaLimit != null) {
       systemd.services.media-storage-scratch-setup = {
         description = "Apply ownership and quota to media scratch storage";
-        wantedBy = [ "multi-user.target" ];
-        unitConfig.RequiresMountsFor = [ cfg.scratch.path ];
+        wantedBy = ["multi-user.target"];
+        unitConfig.RequiresMountsFor = [cfg.scratch.path];
         path = [
           pkgs.btrfs-progs
           pkgs.coreutils

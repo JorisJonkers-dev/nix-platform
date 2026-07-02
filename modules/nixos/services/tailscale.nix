@@ -1,8 +1,10 @@
-{ config, lib, ... }:
-let
-  cfg = config.platformBlueprints.services.tailscale;
-in
 {
+  config,
+  lib,
+  ...
+}: let
+  cfg = config.platformBlueprints.services.tailscale;
+in {
   options.platformBlueprints.services.tailscale = {
     enable = lib.mkEnableOption "generic Tailscale host service";
 
@@ -14,7 +16,7 @@ in
 
     extraUpFlags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Additional flags passed to tailscale up.";
     };
 

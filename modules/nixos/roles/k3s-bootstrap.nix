@@ -1,9 +1,11 @@
-{ config, lib, ... }:
-let
-  cfg = config.platformBlueprints.roles.k3sBootstrap;
-in
 {
-  imports = [ ../k3s.nix ];
+  config,
+  lib,
+  ...
+}: let
+  cfg = config.platformBlueprints.roles.k3sBootstrap;
+in {
+  imports = [../k3s.nix];
 
   options.platformBlueprints.roles.k3sBootstrap = {
     enable = lib.mkEnableOption "generic k3s bootstrap host role";
@@ -34,19 +36,19 @@ in
 
     nodeLabels = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
-      default = { };
+      default = {};
       description = "Default bootstrap node labels.";
     };
 
     nodeTaints = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [];
       description = "Default bootstrap node taints.";
     };
 
     requiredServices = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "network-online.target" ];
+      default = ["network-online.target"];
       description = "Systemd services that must be ready before k3s starts.";
     };
   };

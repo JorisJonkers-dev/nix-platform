@@ -1,5 +1,4 @@
-{ lib }:
-let
+{lib}: let
   roleModuleNames = {
     base = "base";
     k3s-bootstrap = "roleK3sBootstrap";
@@ -27,58 +26,50 @@ let
     tailscale-network = "roleTailscaleSubnetRouter";
   };
 
-  moduleNameForRole =
-    role:
+  moduleNameForRole = role:
     roleModuleNames.${role} or (throw "Unknown nix-platform fleet role: ${role}");
-in
-rec {
+in rec {
   inherit moduleNameForRole roleModuleNames;
 
-  modulesForNode =
-    platformModules: node:
-    map (role: platformModules.${moduleNameForRole role}) (node.roles or [ ]);
+  modulesForNode = platformModules: node:
+    map (role: platformModules.${moduleNameForRole role}) (node.roles or []);
 
-  mkHostModule =
-    platformModules: node:
-    {
-      imports = modulesForNode platformModules node;
-      networking.hostName = lib.mkDefault node.id;
-      nixpkgs.hostPlatform = lib.mkDefault node.system;
-    };
+  mkHostModule = platformModules: node: {
+    imports = modulesForNode platformModules node;
+    networking.hostName = lib.mkDefault node.id;
+    nixpkgs.hostPlatform = lib.mkDefault node.system;
+  };
 
-  mkNixosConfigurations =
-    {
-      nixpkgs,
-      platformModules,
-      fleet,
-      extraModules ? [ ],
-      specialArgs ? { },
-    }:
+  mkNixosConfigurations = {
+    nixpkgs,
+    platformModules,
+    fleet,
+    extraModules ? [],
+    specialArgs ? {},
+  }:
     lib.genAttrs (map (node: node.id) fleet.nodes) (
-      nodeId:
-      let
+      nodeId: let
         node = lib.findFirst (candidate: candidate.id == nodeId) null fleet.nodes;
       in
-      nixpkgs.lib.nixosSystem {
-        system = node.system;
-        inherit specialArgs;
-        modules = [
-          (mkHostModule platformModules node)
-        ] ++ extraModules;
-      }
+        nixpkgs.lib.nixosSystem {
+          system = node.system;
+          inherit specialArgs;
+          modules =
+            [
+              (mkHostModule platformModules node)
+            ]
+            ++ extraModules;
+        }
     );
 
-  deployNodeMetadata =
-    fleet:
+  deployNodeMetadata = fleet:
     lib.genAttrs (map (node: node.id) fleet.nodes) (
-      nodeId:
-      let
+      nodeId: let
         node = lib.findFirst (candidate: candidate.id == nodeId) null fleet.nodes;
-      in
-      {
+      in {
         hostname = node.sshHost or node.id;
         user = node.sshUser or null;
-        profiles = node.roles or [ ];
+        profiles = node.roles or [];
       }
     );
 }

@@ -137,26 +137,6 @@ and firewall exposure.
 
 ## Fleet Helpers
 
-`lib.nixosFleet` maps fleet roles to NixOS modules:
-
-- `base`
-- `k3s-bootstrap`
-- `k3s-server`
-- `k3s-agent`
-- `longhorn-node`
-- `gpu-utility`
-- `gpu-amd`
-- `gpu-nvidia`
-- `node-label-applier`
-- `service-tailscale`
-- `media-storage`
-- `samba`
-- `ollama-rocm`
-- `btrfs-backup-snapshots`
-- `raspberry-pi-aarch64`
-- `raspberry-pi-sd-image`
-- `tailscale-subnet-router`
-
 Compatibility aliases are retained for `k3s-control-plane`, `k3s-worker`, and `tailscale-network`.
 
 ## Node Contract Labels

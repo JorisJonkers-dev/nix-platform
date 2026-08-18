@@ -86,9 +86,6 @@
     };
 
     lib = {
-      nixosFleet = import ./lib/nixos/fleet-to-flake.nix {
-        inherit lib;
-      };
       nodeContractLabels = import ./lib/nixos/node-contract-labels.nix {
         inherit lib;
       };

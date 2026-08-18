@@ -28,7 +28,7 @@ in {
 
     serverString = lib.mkOption {
       type = lib.types.str;
-      default = "nix-platform-samba";
+      default = "nixos-modules-samba";
       description = "Samba server string.";
     };
 

@@ -100,7 +100,7 @@
         fixture = moduleFixture system;
         fixtureDrvPath = builtins.unsafeDiscardStringContext fixture.config.system.build.toplevel.drvPath;
       in {
-        module-fixture = pkgs.runCommand "nix-platform-module-fixture" {} ''
+        module-fixture = pkgs.runCommand "nixos-modules-module-fixture" {} ''
           printf '%s\n' '${fixtureDrvPath}' > "$out"
         '';
       }

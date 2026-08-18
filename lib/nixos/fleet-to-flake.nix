@@ -27,7 +27,7 @@
   };
 
   moduleNameForRole = role:
-    roleModuleNames.${role} or (throw "Unknown nix-platform fleet role: ${role}");
+    roleModuleNames.${role} or (throw "Unknown nixos-modules fleet role: ${role}");
 in rec {
   inherit moduleNameForRole roleModuleNames;
 

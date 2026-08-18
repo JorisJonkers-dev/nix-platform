@@ -1,4 +1,4 @@
-# nix-platform
+# nixos-modules
 
 Reusable NixOS modules and helper library for JorisJonkers-dev platform hosts.
 
@@ -12,7 +12,7 @@ Pin the flake in a consumer repository:
 
 ```nix
 {
-  inputs.nix-platform.url = "github:JorisJonkers-dev/nix-platform/v0.1.0";
+  inputs.nixos-modules.url = "github:JorisJonkers-dev/nixos-modules/v0.1.0";
 }
 ```
 
@@ -22,11 +22,11 @@ Import modules in consumer-owned host modules:
 { inputs, ... }:
 {
   imports = [
-    inputs.nix-platform.nixosModules.default
-    inputs.nix-platform.nixosModules.roleK3sServer
-    inputs.nix-platform.nixosModules.roleLonghornNode
-    inputs.nix-platform.nixosModules.roleGpuAmd
-    inputs.nix-platform.nixosModules.serviceTailscale
+    inputs.nixos-modules.nixosModules.default
+    inputs.nixos-modules.nixosModules.roleK3sServer
+    inputs.nixos-modules.nixosModules.roleLonghornNode
+    inputs.nixos-modules.nixosModules.roleGpuAmd
+    inputs.nixos-modules.nixosModules.serviceTailscale
   ];
 
   platformBlueprints.base = {
@@ -93,9 +93,9 @@ The service modules are parameterized building blocks:
 ```nix
 {
   imports = [
-    inputs.nix-platform.nixosModules.serviceMediaStorage
-    inputs.nix-platform.nixosModules.serviceSamba
-    inputs.nix-platform.nixosModules.serviceBtrfsBackupSnapshots
+    inputs.nixos-modules.nixosModules.serviceMediaStorage
+    inputs.nixos-modules.nixosModules.serviceSamba
+    inputs.nixos-modules.nixosModules.serviceBtrfsBackupSnapshots
   ];
 
   platformBlueprints.services.mediaStorage = {
